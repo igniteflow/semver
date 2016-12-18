@@ -1,0 +1,8 @@
+#!/usr/bin/env python
+
+from semver.semver import SemanticVersioning
+
+
+if __name__ == "__main__":
+    semver = SemanticVersioning()
+    print semver.current()

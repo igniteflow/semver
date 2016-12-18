@@ -23,15 +23,21 @@ class SemanticVersioning(object):
         pattern = r'^{}(\d+\.)?(\d+\.)?(\*|\d+)$'.format(self.prefix)
         return re.match(pattern, tag)
 
-    def current(self):
+    def fetch_tags(self):
         self._check_output("git fetch --tags")
+
+    def get_tags(self):
+        """return tags with most recent first"""
         output = self._check_output("git for-each-ref --sort=-taggerdate --format %(tag) refs/tags")
-        tags = output.split('\n')
-        for tag in tags:
-            if tag.strip().startswith('{}'.format(self.prefix)):
+        return output.split('\n')
+
+    def current(self):
+        self.fetch_tags()
+        for tag in self.get_tags():
+            if self.is_match(tag):
                 return tag
 
-        # tagged version not found so create one
+        # valid tagged version not found so create one
         version = None
         while not version:
             version = raw_input('Please enter a starting version.  Should be of format {}1.0.0: '.format(self.prefix))
@@ -61,7 +67,7 @@ class SemanticVersioning(object):
 
         return '{}{}.{}.{}'.format(self.prefix, major, minor, patch)
 
-    def tag(self, version, push=True):
+    def tag(self, version, push=False):
         self._check_output('git tag -a {0} -m "{0}"'.format(version))
         if push:
             self._check_output('git push --tags')
